@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Врач - Карта пациента{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 1fr 300px; gap: 20px; align-items: start;">
+    <!-- Основная информация -->
+    <div>
+        <div class="card">
+            <h3>📋 {{ data.patient.surname }} {{ data.patient.name }} {{ data.patient.patronim or '' }}</h3>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
+                <div>
+                    <div style="font-size: 0.8rem; color: #666;">Дата рождения</div>
+                    <div>{{ data.patient.birth_date }}</div>
+                </div>
+                <div>
+                    <div style="font-size: 0.8rem; color: #666;">Пол</div>
+                    <div>{{ 'Мужской' if data.patient.gender == 'м' else 'Женский' }}</div>
+                </div>
+                <div>
+                    <div style="font-size: 0.8rem; color: #666;">Рост</div>
+                    <div>{{ data.patient.height or '-' }} см</div>
+                </div>
+                <div>
+                    <div style="font-size: 0.8rem; color: #666;">Вес</div>
+                    <div>{{ data.patient.weight or '-' }} кг</div>
+                </div>
+            </div>
+        </div>
+
+        {% if chart_url %}
+        <div class="chart-container">
+            <h3>Графики измерений</h3>
+            <img src="data:image/png;base64,{{ chart_url }}" alt="Графики" style="max-width: 100%;">
+        </div>
+        {% endif %}
+
+        <!-- Вкладки -->
+        <div class="tabs">
+            <button class="tab active">Измерения</button>
+            <button class="tab">Назначения</button>
+            <button class="tab">Жалобы</button>
+        </div>
+
+        <!-- Таблица измерений -->
+        <div class="table-responsive" style="margin-bottom: 20px;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th>Глюкоза</th>
+                        <th>Давление</th>
+                        <th>Пульс</th>
+                        <th>Вес</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in data.measurements[:10] %}
+                    <tr>
+                        <td>{{ m.measured_at[:10] }}</td>
+                        <td>{{ m.glucose or '-' }}</td>
+                        <td>{{ m.systolic_bp }}/{{ m.diastolic_bp }}</td>
+                        <td>{{ m.pulse or '-' }}</td>
+                        <td>{{ m.weight or '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Правая колонка - Действия врача -->
+    <div>
+        <div class="actions-card">
+            <h3>Действия</h3>
+            <div class="action-buttons-vertical">
+                <button class="btn btn-primary" style="width: 100%; text-align: left;">➕ Назначить лечение</button>
+                <button class="btn btn-secondary" style="width: 100%; text-align: left;">📝 Выписать рецепт</button>
+                <button class="btn btn-secondary" style="width: 100%; text-align: left;">🩺 Направить на анализы</button>
+                <button class="btn btn-secondary" style="width: 100%; text-align: left;">📅 Записать на приём</button>
+                <hr style="margin: 15px 0; border: none; border-top: 1px solid #ddd;">
+                <button class="btn btn-secondary" style="width: 100%; text-align: left;">📄 История болезни</button>
+                <button class="btn btn-secondary" style="width: 100%; text-align: left;">🖨️ Печать карты</button>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+            <h3>Последние назначения</h3>
+            {% for p in data.prescriptions[:3] %}
+            <div style="border-bottom: 1px solid #eee; padding: 10px 0;">
+                <div><strong>{{ p.medication_name }}</strong></div>
+                <div style="font-size: 0.85rem; color: #666;">{{ p.quantity }} {{ p.dose_unit }} · {{ p.frequency }}</div>
+                <div style="font-size: 0.8rem;">с {{ p.start_date[:10] }} · {{ p.status }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<a href="{{ url_for('doctor_patients') }}" class="btn btn-secondary" style="margin-top: 20px;">← К списку пациентов</a>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Пациент - Главная{% endblock %}
+
+{% block content %}
+<div class="patient-profile-layout">
+    <!-- Левая колонка - Профиль и измерения -->
+    <div>
+        <div class="profile-card">
+            <h3>👤 {{ profile.surname }} {{ profile.name }} {{ profile.patronim or '' }}</h3>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div>
+                    <div style="font-size: 0.8rem; color: #666;">Дата рождения</div>
+                    <div>{{ profile.birth_date }}</div>
+                </div>
+                <div>
+                    <div style="font-size: 0.8rem; color: #666;">Пол</div>
+                    <div>{{ 'Мужской' if profile.gender == 'м' else 'Женский' }}</div>
+                </div>
+                <div>
+                    <div style="font-size: 0.8rem; color: #666;">Рост / Вес</div>
+                    <div>{{ profile.height or '-' }} см / {{ profile.weight or '-' }} кг</div>
+                </div>
+                <div>
+                    <div style="font-size: 0.8rem; color: #666;">Email</div>
+                    <div>{{ profile.email or '-' }}</div>
+                </div>
+            </div>
+        </div>
+
+        <h3 style="margin: 20px 0 10px 0;">Последние измерения</h3>
+        <div class="measurements-grid">
+            {% for m in measurements[:6] %}
+            <div class="measurement-item">
+                <div><strong>{{ m.measured_at[:10] }}</strong></div>
+                {% if m.glucose %}<div>Глюкоза: {{ m.glucose }} ммоль/л</div>{% endif %}
+                {% if m.systolic_bp %}<div>Давление: {{ m.systolic_bp }}/{{ m.diastolic_bp }}</div>{% endif %}
+                {% if m.pulse %}<div>Пульс: {{ m.pulse }} уд/мин</div>{% endif %}
+                {% if m.weight %}<div>Вес: {{ m.weight }} кг</div>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Правая колонка - Кнопки -->
+    <div>
+        <div class="actions-card">
+            <h3>Действия</h3>
+            <div class="action-buttons-vertical">
+                <a href="{{ url_for('patient_measurements') }}" class="btn btn-primary">+ Измерения</a>
+                <a href="{{ url_for('patient_complaints') }}" class="btn btn-secondary">📋 Жалоба</a>
+                <a href="{{ url_for('patient_prescriptions') }}" class="btn btn-secondary">💊 Назначения</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

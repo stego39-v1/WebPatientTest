@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Пациент - Назначения{% endblock %}
+
+{% block content %}
+<h2>Назначения</h2>
+
+<div class="table-responsive">
+    <table>
+        <thead>
+            <tr>
+                <th>Препарат</th>
+                <th>Дозировка</th>
+                <th>Частота</th>
+                <th>Длительность</th>
+                <th>Начало</th>
+                <th>Статус</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in prescriptions %}
+            <tr>
+                <td>{{ p.medication_name }}</td>
+                <td>{{ p.quantity }} {{ p.dose_unit }}</td>
+                <td>{{ p.frequency }}</td>
+                <td>{{ p.duration_days }} дней</td>
+                <td>{{ p.start_date[:10] }}</td>
+                <td>{{ p.status }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<a href="{{ url_for('patient_dashboard') }}" class="btn btn-secondary">Назад</a>
+{% endblock %}

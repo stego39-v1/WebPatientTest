@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/WebPatient.iml" filepath="$PROJECT_DIR$/.idea/WebPatient.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/MedSystemWeb.iml" filepath="$PROJECT_DIR$/.idea/MedSystemWeb.iml" />
     </modules>
   </component>
 </project>

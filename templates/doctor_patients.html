@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Врач - Пациенты{% endblock %}
+
+{% block content %}
+<div class="patients-header">
+    <h2>Мои пациенты</h2>
+    <div>
+        <input type="search" placeholder="Поиск..." style="width: 200px; margin-right: 10px;">
+        <a href="#" class="btn btn-secondary">Все записи</a>
+    </div>
+</div>
+
+<div>
+    {% for p in patients %}
+    <div class="patient-card">
+        <div class="patient-info">
+            <div class="patient-avatar">
+                {{ p.surname[0] }}{{ p.name[0] }}
+            </div>
+            <div>
+                <div style="font-weight: bold;">{{ p.surname }} {{ p.name }} {{ p.patronim or '' }}</div>
+                <div style="font-size: 0.85rem; color: #666;">
+                    {{ p.birth_date }} | {{ 'М' if p.gender == 'м' else 'Ж' }}
+                </div>
+            </div>
+        </div>
+        <a href="{{ url_for('doctor_patient_card', patient_id=p.id) }}" class="btn btn-sm btn-primary">Карта</a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

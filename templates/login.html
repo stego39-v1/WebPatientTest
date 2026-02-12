@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Вход{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <h2>Вход в систему</h2>
+
+    <div class="login-info">
+        <p><strong>Демо-данные для входа:</strong></p>
+        <ul>
+            <li><strong>Пациент:</strong> Петров.Александр.Иванович@mail.ru / default123</li>
+            <li><strong>Врач:</strong> андрей.лебедева@mail.ru / default123</li>
+        </ul>
+        <p class="hint">Пароль по умолчанию для всех пользователей: <code>default123</code></p>
+    </div>
+
+    <form method="POST">
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="text" id="email" name="email" required
+                   placeholder="example@mail.ru">
+        </div>
+        <div class="form-group">
+            <label for="password">Пароль:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Войти</button>
+    </form>
+
+    <p class="register-link">
+        Нет аккаунта? <a href="{{ url_for('register') }}">Зарегистрироваться</a>
+    </p>
+</div>
+
+<style>
+.login-info {
+    background: #e3f2fd;
+    padding: 1rem;
+    border-radius: 5px;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid #2196f3;
+}
+
+.login-info ul {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+}
+
+.login-info .hint {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 0.5rem;
+    font-style: italic;
+}
+
+.login-info code {
+    background: #bbdefb;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-family: monospace;
+}
+
+.register-link {
+    text-align: center;
+    margin-top: 1.5rem;
+    color: #666;
+}
+
+.register-link a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 500;
+}
+</style>
+{% endblock %}

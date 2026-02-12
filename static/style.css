@@ -1,0 +1,390 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f0f2f5;
+    color: #1e1e1e;
+    line-height: 1.4;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Хедер */
+nav {
+    background: white;
+    border: 1px solid #ddd;
+    margin-bottom: 20px;
+}
+
+nav .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+}
+
+nav h1 {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #2563eb;
+}
+
+.nav-right {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.nav-right span {
+    background: #f5f5f5;
+    padding: 4px 12px;
+    border: 1px solid #ddd;
+    font-size: 0.85rem;
+}
+
+.nav-right a {
+    text-decoration: none;
+    color: #2563eb;
+}
+
+/* Карточки */
+.card {
+    background: white;
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.card h3 {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+/* Формы */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #555;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    font-size: 0.95rem;
+    background: white;
+}
+
+.form-group input:focus {
+    border-color: #2563eb;
+    outline: none;
+}
+
+/* Кнопки */
+.btn {
+    display: inline-block;
+    padding: 8px 16px;
+    border: 1px solid #ccc;
+    background: white;
+    color: #333;
+    text-decoration: none;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: #2563eb;
+    border-color: #2563eb;
+    color: white;
+}
+
+.btn-secondary {
+    background: white;
+    border: 1px solid #ccc;
+    color: #333;
+}
+
+.btn-sm {
+    padding: 4px 12px;
+    font-size: 0.8rem;
+}
+
+/* Таблицы */
+.table-responsive {
+    background: white;
+    border: 1px solid #ddd;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table th {
+    background: #f5f5f5;
+    border-bottom: 1px solid #ddd;
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: bold;
+    font-size: 0.85rem;
+}
+
+table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #eee;
+}
+
+/* Измерения - сетка */
+.measurements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 16px;
+}
+
+.measurement-item {
+    background: white;
+    border: 1px solid #ddd;
+    padding: 12px;
+}
+
+.measurement-item p {
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+}
+
+/* Графики */
+.chart-container {
+    background: white;
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+/* Контейнеры авторизации */
+.login-container,
+.register-container {
+    max-width: 450px;
+    margin: 40px auto;
+    background: white;
+    border: 1px solid #ddd;
+    padding: 25px;
+}
+
+.login-container h2,
+.register-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 1.3rem;
+}
+
+/* Инфо-блок */
+.login-info {
+    background: #f8f9fa;
+    border: 1px solid #ddd;
+    border-left: 3px solid #2563eb;
+    padding: 15px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+}
+
+.login-info ul {
+    margin-left: 20px;
+    margin-top: 10px;
+}
+
+.login-info code {
+    background: #eee;
+    padding: 2px 6px;
+    border: 1px solid #ccc;
+    font-family: monospace;
+}
+
+/* Переключатель ролей */
+.role-selector {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    padding: 5px;
+    background: #f5f5f5;
+}
+
+.role-btn {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    cursor: pointer;
+}
+
+.role-btn.active {
+    background: white;
+    border: 1px solid #2563eb;
+    color: #2563eb;
+}
+
+/* Сетка для форм */
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+/* Алерты */
+.alert {
+    padding: 12px 16px;
+    border: 1px solid;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+}
+
+.alert-success {
+    background: #e6f3e6;
+    border-color: #c3e6cb;
+    color: #155724;
+}
+
+.alert-error {
+    background: #f8e6e6;
+    border-color: #f5c6cb;
+    color: #721c24;
+}
+
+/* Лэйаут профиля пациента */
+.patient-profile-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 20px;
+    align-items: start;
+}
+
+.profile-card {
+    background: white;
+    border: 1px solid #ddd;
+    padding: 20px;
+}
+
+.actions-card {
+    background: white;
+    border: 1px solid #ddd;
+    padding: 20px;
+}
+
+/* Вертикальные кнопки */
+.action-buttons-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.action-buttons-vertical .btn {
+    width: 100%;
+    text-align: left;
+}
+
+/* Карточка пациента */
+.patient-card {
+    background: white;
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.patient-info {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.patient-avatar {
+    width: 40px;
+    height: 40px;
+    background: #e6f0ff;
+    border: 1px solid #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+/* Хедер пациентов */
+.patients-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* Вкладки */
+.tabs {
+    display: flex;
+    gap: 2px;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    padding: 3px;
+    margin-bottom: 20px;
+}
+
+.tab {
+    padding: 8px 16px;
+    border: 1px solid transparent;
+    background: transparent;
+    cursor: pointer;
+}
+
+.tab.active {
+    background: white;
+    border: 1px solid #2563eb;
+}
+
+/* Поиск */
+input[type="search"] {
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-radius: 0;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .patient-profile-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    nav .container {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .nav-right {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+}

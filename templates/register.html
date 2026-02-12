@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}Регистрация{% endblock %}
+
+{% block content %}
+<div class="register-container">
+    <h2>Регистрация в системе</h2>
+    
+    <div class="role-selector">
+        <button class="role-btn active" data-role="patient">Я пациент</button>
+        <button class="role-btn" data-role="doctor">Я врач</button>
+    </div>
+    
+    <form method="POST" id="registerForm">
+        <input type="hidden" name="role" id="roleInput" value="patient">
+        
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="text" id="email" name="email" required placeholder="example@mail.ru">
+            <small class="hint">Для входа используйте почту из базы данных</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Пароль:</label>
+            <input type="password" id="password" name="password" required minlength="12">
+            <small class="hint">Минимум 12 символов, заглавная буква, цифра, спецсимвол</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="confirm_password">Подтвердите пароль:</label>
+            <input type="password" id="confirm_password" name="confirm_password" required>
+        </div>
+        
+        <div id="patientFields" class="patient-fields">
+            <h3>Персональные данные</h3>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="surname">Фамилия:</label>
+                    <input type="text" id="surname" name="surname" required>
+                </div>
+                <div class="form-group">
+                    <label for="name">Имя:</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="patronim">Отчество:</label>
+                    <input type="text" id="patronim" name="patronim">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="gender">Пол:</label>
+                    <select id="gender" name="gender" required>
+                        <option value="м">Мужской</option>
+                        <option value="ж">Женский</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="birth_date">Дата рождения:</label>
+                    <input type="date" id="birth_date" name="birth_date" required>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="height">Рост (см):</label>
+                    <input type="number" id="height" name="height" min="100" max="250" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label for="weight">Вес (кг):</label>
+                    <input type="number" id="weight" name="weight" min="30" max="300" step="0.1">
+                </div>
+            </div>
+        </div>
+        
+        <div id="doctorFields" class="doctor-fields" style="display:none;">
+            <h3>Данные врача</h3>
+            <p class="info-text">Для врачей регистрация выполняется администратором</p>
+        </div>
+        
+        <div class="form-group checkbox-group">
+            <input type="checkbox" id="terms" required>
+            <label for="terms">Согласен на обработку персональных данных</label>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
+    </form>
+    
+    <p class="login-link">
+        Уже есть аккаунт? <a href="{{ url_for('login') }}">Войти</a>
+    </p>
+</div>
+
+<style>
+.register-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.role-selector {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    justify-content: center;
+}
+
+.role-btn {
+    padding: 0.75rem 1.5rem;
+    border: 2px solid #e0e0e0;
+    background: white;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.role-btn.active {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.role-btn:hover:not(.active) {
+    border-color: #667eea;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.hint {
+    font-size: 0.85rem;
+    color: #666;
+    display: block;
+    margin-top: 0.25rem;
+}
+
+.info-text {
+    background: #e3f2fd;
+    padding: 1rem;
+    border-radius: 5px;
+    color: #1976d2;
+    margin-bottom: 1rem;
+}
+
+.login-link {
+    text-align: center;
+    margin-top: 1.5rem;
+    color: #666;
+}
+
+.login-link a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.checkbox-group label {
+    margin: 0;
+    cursor: pointer;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const roleBtns = document.querySelectorAll('.role-btn');
+    const patientFields = document.getElementById('patientFields');
+    const doctorFields = document.getElementById('doctorFields');
+    const roleInput = document.getElementById('roleInput');
+    
+    roleBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            roleBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            const role = this.getAttribute('data-role');
+            roleInput.value = role;
+            
+            if (role === 'patient') {
+                patientFields.style.display = 'block';
+                doctorFields.style.display = 'none';
+            } else {
+                patientFields.style.display = 'none';
+                doctorFields.style.display = 'block';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
