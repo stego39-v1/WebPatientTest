@@ -1,39 +1,222 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Медицинская система{% endblock %}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏥</text></svg>">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <nav>
-        <div class="container">
-            <h1>🏥 Медицинская система</h1>
-            {% if 'token' in session %}
-                <div class="nav-right">
-                    <span>✨ {{ session.role | title }}</span>
-                    <a href="{{ url_for('dashboard') }}">Главная</a>
-                    <a href="{{ url_for('logout') }}">Выйти</a>
+    {% if 'token' in session and session.role == 'patient' %}
+        <!-- ========== ГОРИЗОНТАЛЬНАЯ ПАНЕЛЬ (ТОП) ========== -->
+        <header class="top-nav">
+            <div class="nav-left">
+                <div class="logo">
+                    <i class="fas fa-heartbeat" style="color: #667eea; font-size: 1.8rem;"></i>
+                    <span class="logo-text">HealthTrack</span>
                 </div>
-            {% endif %}
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+
+            <div class="nav-center">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="search" placeholder="Поиск...">
+                </div>
+            </div>
+
+            <div class="nav-right">
+                <!-- ФИО пациента -->
+                <div class="user-info">
+                    <span class="user-greeting">Здравствуйте,</span>
+                    <span class="user-name">{{ session.get('user_name', 'Пациент') }}</span>
+                </div>
+
+                <!-- Уведомления -->
+                <div class="notifications" id="notificationsWidget">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge" id="notificationCount">3</span>
+                    <div class="notifications-dropdown" id="notificationsDropdown">
+                        <div class="notifications-header">
+                            <h4>Уведомления</h4>
+                            <button class="mark-all-read">✓ Все прочитаны</button>
+                        </div>
+                        <div class="notifications-list">
+                            <div class="notification-item critical">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <div class="notification-content">
+                                    <p>Пропущен прием лекарства</p>
+                                    <span>5 мин назад</span>
+                                </div>
+                            </div>
+                            <div class="notification-item warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <div class="notification-content">
+                                    <p>Повышенное давление</p>
+                                    <span>1 час назад</span>
+                                </div>
+                            </div>
+                            <div class="notification-item info">
+                                <i class="fas fa-info-circle"></i>
+                                <div class="notification-content">
+                                    <p>Запись к врачу завтра</p>
+                                    <span>3 часа назад</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="notifications-footer">
+                            <a href="{{ url_for('patient_notifications') }}">Все уведомления</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Выход -->
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="logout-text">Выход</span>
+                </a>
+            </div>
+        </header>
+
+        <!-- ========== ВЕРТИКАЛЬНОЕ МЕНЮ + КОНТЕНТ ========== -->
+        <div class="layout">
+            <aside class="sidebar" id="sidebar">
+                <nav class="sidebar-nav">
+                    <ul>
+                        <li class="{% if request.endpoint == 'patient_dashboard' %}active{% endif %}">
+                            <a href="{{ url_for('patient_dashboard') }}">
+                                <i class="fas fa-home"></i>
+                                <span>Главная</span>
+                            </a>
+                        </li>
+                        <li class="{% if request.endpoint == 'patient_measurements' %}active{% endif %}">
+                            <a href="{{ url_for('patient_measurements') }}">
+                                <i class="fas fa-chart-line"></i>
+                                <span>Мои показатели</span>
+                            </a>
+                        </li>
+                        <li class="{% if request.endpoint == 'patient_prescriptions' %}active{% endif %}">
+                            <a href="{{ url_for('patient_prescriptions') }}">
+                                <i class="fas fa-pills"></i>
+                                <span>Назначения</span>
+                                {% set active_prescriptions = session.get('active_prescriptions', 2) %}
+                                {% if active_prescriptions > 0 %}
+                                    <span class="badge">{{ active_prescriptions }}</span>
+                                {% endif %}
+                            </a>
+                        </li>
+                        <li class="{% if request.endpoint == 'patient_diary' %}active{% endif %}">
+                            <a href="{{ url_for('patient_diary') }}">
+                                <i class="fas fa-book"></i>
+                                <span>Дневник</span>
+                            </a>
+                        </li>
+                        <li class="{% if request.endpoint == 'patient_statistics' %}active{% endif %}">
+                            <a href="{{ url_for('patient_statistics') }}">
+                                <i class="fas fa-chart-pie"></i>
+                                <span>Статистика</span>
+                            </a>
+                        </li>
+                        <li class="{% if request.endpoint == 'patient_visits' %}active{% endif %}">
+                            <a href="{{ url_for('patient_visits') }}">
+                                <i class="fas fa-calendar"></i>
+                                <span>Визиты</span>
+                            </a>
+                        </li>
+                        <li class="{% if request.endpoint == 'patient_settings' %}active{% endif %}">
+                            <a href="{{ url_for('patient_settings') }}">
+                                <i class="fas fa-cog"></i>
+                                <span>Настройки</span>
+                            </a>
+                        </li>
+                        <li class="help-item">
+                            <a href="{{ url_for('patient_help') }}">
+                                <i class="fas fa-question-circle"></i>
+                                <span>Помощь</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <div class="accessibility-tools">
+                    <button class="font-size-btn" onclick="accessibility.decreaseFont()">
+                        <i class="fas fa-search-minus"></i> A-
+                    </button>
+                    <button class="font-size-btn" onclick="accessibility.increaseFont()">
+                        <i class="fas fa-search-plus"></i> A+
+                    </button>
+                    <button class="contrast-btn" onclick="accessibility.toggleContrast()">
+                        <i class="fas fa-adjust"></i> Контраст
+                    </button>
+                </div>
+            </aside>
+
+            <main class="main-content">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible">
+                                {{ message }}
+                                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </main>
         </div>
-    </nav>
-
-    <div class="container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-
-        {% block content %}{% endblock %}
-    </div>
+    {% else %}
+        <!-- Шапка для неавторизованных -->
+        <header class="simple-header">
+            <div class="container">
+                <div class="logo">
+                    <i class="fas fa-heartbeat" style="color: #667eea; font-size: 1.8rem;"></i>
+                    <span class="logo-text">HealthTrack</span>
+                </div>
+            </div>
+        </header>
+        <main>
+            <div class="container">
+                {% block auth_content %}{% endblock %}
+            </div>
+        </main>
+    {% endif %}
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        // Базовый объект для accessibility
+        const accessibility = {
+            decreaseFont() {
+                document.body.style.fontSize = '14px';
+            },
+            increaseFont() {
+                document.body.style.fontSize = '18px';
+            },
+            toggleContrast() {
+                document.body.classList.toggle('high-contrast');
+            }
+        };
+
+        // Toggle для мобильного меню
+        document.getElementById('menuToggle')?.addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('active');
+        });
+
+        // Toggle для уведомлений
+        document.getElementById('notificationsWidget')?.addEventListener('click', function(e) {
+            e.stopPropagation();
+            document.getElementById('notificationsDropdown').classList.toggle('show');
+        });
+
+        // Закрыть уведомления при клике вне
+        window.addEventListener('click', function() {
+            const dropdown = document.getElementById('notificationsDropdown');
+            if (dropdown) dropdown.classList.remove('show');
+        });
+    </script>
 </body>
 </html>

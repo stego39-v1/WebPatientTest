@@ -1,58 +1,173 @@
 {% extends "base.html" %}
 
-{% block title %}Пациент - Главная{% endblock %}
+{% block title %}Главная - HealthTrack{% endblock %}
 
 {% block content %}
-<div class="patient-profile-layout">
-    <!-- Левая колонка - Профиль и измерения -->
-    <div>
-        <div class="profile-card">
-            <h3>👤 {{ profile.surname }} {{ profile.name }} {{ profile.patronim or '' }}</h3>
+<!-- Секция приветствия -->
+<div class="welcome-section">
+    <h2>👋 С возвращением, {{ profile.name }}!</h2>
+    <p>{{ current_date }}</p>
+</div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div>
-                    <div style="font-size: 0.8rem; color: #666;">Дата рождения</div>
-                    <div>{{ profile.birth_date }}</div>
-                </div>
-                <div>
-                    <div style="font-size: 0.8rem; color: #666;">Пол</div>
-                    <div>{{ 'Мужской' if profile.gender == 'м' else 'Женский' }}</div>
-                </div>
-                <div>
-                    <div style="font-size: 0.8rem; color: #666;">Рост / Вес</div>
-                    <div>{{ profile.height or '-' }} см / {{ profile.weight or '-' }} кг</div>
-                </div>
-                <div>
-                    <div style="font-size: 0.8rem; color: #666;">Email</div>
-                    <div>{{ profile.email or '-' }}</div>
-                </div>
-            </div>
-        </div>
-
-        <h3 style="margin: 20px 0 10px 0;">Последние измерения</h3>
-        <div class="measurements-grid">
-            {% for m in measurements[:6] %}
-            <div class="measurement-item">
-                <div><strong>{{ m.measured_at[:10] }}</strong></div>
-                {% if m.glucose %}<div>Глюкоза: {{ m.glucose }} ммоль/л</div>{% endif %}
-                {% if m.systolic_bp %}<div>Давление: {{ m.systolic_bp }}/{{ m.diastolic_bp }}</div>{% endif %}
-                {% if m.pulse %}<div>Пульс: {{ m.pulse }} уд/мин</div>{% endif %}
-                {% if m.weight %}<div>Вес: {{ m.weight }} кг</div>{% endif %}
-            </div>
-            {% endfor %}
+<!-- Сводка за сегодня -->
+<div class="today-summary">
+    <div class="summary-card">
+        <i class="fas fa-heart"></i>
+        <div class="summary-info">
+            <h4>Давление</h4>
+            <p>
+                {% if last_measurement and last_measurement.systolic_bp %}
+                    {{ last_measurement.systolic_bp }}/{{ last_measurement.diastolic_bp }}
+                {% else %}
+                    —
+                {% endif %}
+            </p>
         </div>
     </div>
-
-    <!-- Правая колонка - Кнопки -->
-    <div>
-        <div class="actions-card">
-            <h3>Действия</h3>
-            <div class="action-buttons-vertical">
-                <a href="{{ url_for('patient_measurements') }}" class="btn btn-primary">+ Измерения</a>
-                <a href="{{ url_for('patient_complaints') }}" class="btn btn-secondary">📋 Жалоба</a>
-                <a href="{{ url_for('patient_prescriptions') }}" class="btn btn-secondary">💊 Назначения</a>
-            </div>
+    <div class="summary-card">
+        <i class="fas fa-flask"></i>
+        <div class="summary-info">
+            <h4>Глюкоза</h4>
+            <p>
+                {% if last_measurement and last_measurement.glucose %}
+                    {{ last_measurement.glucose }} ммоль/л
+                {% else %}
+                    —
+                {% endif %}
+            </p>
+        </div>
+    </div>
+    <div class="summary-card">
+        <i class="fas fa-heartbeat"></i>
+        <div class="summary-info">
+            <h4>Пульс</h4>
+            <p>
+                {% if last_measurement and last_measurement.pulse %}
+                    {{ last_measurement.pulse }} уд/мин
+                {% else %}
+                    —
+                {% endif %}
+            </p>
+        </div>
+    </div>
+    <div class="summary-card">
+        <i class="fas fa-weight"></i>
+        <div class="summary-info">
+            <h4>Вес</h4>
+            <p>
+                {% if last_measurement and last_measurement.weight %}
+                    {{ last_measurement.weight }} кг
+                {% else %}
+                    —
+                {% endif %}
+            </p>
         </div>
     </div>
 </div>
+
+<!-- Профиль пациента -->
+<div class="card">
+    <h3>👤 Профиль пациента</h3>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+        <div>
+            <div style="font-size: 0.8rem; color: #666;">ФИО</div>
+            <div><strong>{{ profile.surname }} {{ profile.name }} {{ profile.patronim or '' }}</strong></div>
+        </div>
+        <div>
+            <div style="font-size: 0.8rem; color: #666;">Дата рождения / Пол</div>
+            <div>{{ profile.birth_date }} • {{ 'Мужской' if profile.gender == 'м' else 'Женский' }}</div>
+        </div>
+        <div>
+            <div style="font-size: 0.8rem; color: #666;">Рост / Вес</div>
+            <div>{{ profile.height or '—' }} см / {{ profile.weight or '—' }} кг</div>
+        </div>
+        <div>
+            <div style="font-size: 0.8rem; color: #666;">Контакты</div>
+            <div>{{ profile.email }} • {{ profile.phone or '—' }}</div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Быстрые действия -->
+<h3 style="margin: 30px 0 15px 0;">⚡ Быстрые действия</h3>
+<div class="quick-actions">
+    <a href="{{ url_for('patient_measurements') }}" class="quick-action-btn">
+        <i class="fas fa-chart-line"></i>
+        <span>Добавить показатели</span>
+    </a>
+    <a href="{{ url_for('patient_diary') }}" class="quick-action-btn">
+        <i class="fas fa-book"></i>
+        <span>Запись в дневник</span>
+    </a>
+    <a href="{{ url_for('patient_prescriptions') }}" class="quick-action-btn">
+        <i class="fas fa-pills"></i>
+        <span>Мои назначения</span>
+    </a>
+    <a href="{{ url_for('patient_visits') }}" class="quick-action-btn">
+        <i class="fas fa-calendar-plus"></i>
+        <span>Записаться к врачу</span>
+    </a>
+</div>
+
+<!-- Последние измерения -->
+<h3 style="margin: 30px 0 15px 0;">📊 Последние измерения</h3>
+<div class="measurements-grid">
+    {% if measurements %}
+        {% for m in measurements[:6] %}
+        <div class="measurement-item">
+            <div style="font-weight: bold; color: #667eea;">{{ m.measured_at[:10] }}</div>
+            {% if m.glucose %}<div>🩸 Глюкоза: {{ m.glucose }} ммоль/л</div>{% endif %}
+            {% if m.systolic_bp %}<div>❤️ Давление: {{ m.systolic_bp }}/{{ m.diastolic_bp }}</div>{% endif %}
+            {% if m.pulse %}<div>💓 Пульс: {{ m.pulse }} уд/мин</div>{% endif %}
+            {% if m.weight %}<div>⚖️ Вес: {{ m.weight }} кг</div>{% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 30px;">
+            <p style="color: #999; margin-bottom: 15px;">Нет добавленных измерений</p>
+            <a href="{{ url_for('patient_measurements') }}" class="btn btn-primary">
+                <i class="fas fa-plus-circle"></i> Добавить первое измерение
+            </a>
+        </div>
+    {% endif %}
+</div>
 {% endblock %}
+
+@app.route('/patient/dashboard')
+def patient_dashboard():
+    if 'token' not in session or session['role'] != 'patient':
+        print("Patient dashboard: Access denied")
+        flash('Доступ запрещен', 'error')
+        return redirect(url_for('login'))
+
+    print(f"Patient dashboard: Fetching profile with token {session['token'][:20]}...")
+
+    # ✅ ВАЖНО: передаём токен в api_request!
+    response = api_request('GET', '/patient/profile', token=session['token'])
+
+    if not response or response.status_code != 200:
+        print(f"Profile fetch failed: {response.status_code if response else 'No response'}")
+        session.clear()
+        flash('Сессия истекла, пожалуйста, войдите снова', 'error')
+        return redirect(url_for('login'))
+
+    profile = response.json()
+    session['user_name'] = f"{profile['name']} {profile['surname']}"
+
+    # ✅ Токен передаём и для измерений
+    measurements_response = api_request('GET', '/patient/measurements', token=session['token'])
+    measurements = measurements_response.json()[:10] if measurements_response and measurements_response.status_code == 200 else []
+
+    last_measurement = measurements[0] if measurements else None
+
+    from datetime import datetime
+    current_date = datetime.now().strftime('%d.%m.%Y')
+
+    return render_template(
+        'patient_dashboard.html',
+        profile=profile,
+        measurements=measurements,
+        last_measurement=last_measurement,
+        current_date=current_date
+    )

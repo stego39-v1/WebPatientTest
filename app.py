@@ -8,6 +8,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from datetime import datetime
+from flask import make_response
 import re
 
 app = Flask(__name__)
@@ -20,17 +21,18 @@ API_URL = Config.API_BASE_URL
 
 
 def api_request(method, endpoint, data=None, token=None, use_form=False):
-    """Универсальная функция для запросов к API
-
-    Args:
-        use_form: True для form-data (auth/login), False для JSON (остальное)
-    """
+    """Универсальная функция для запросов к API"""
     headers = {}
+
+    # ✅ ВАЖНО: правильно формируем заголовок Authorization
     if token:
         headers['Authorization'] = f'Bearer {token}'
+        print(f"🔑 Токен отправлен: {token[:20]}...")
+    else:
+        print("⚠️ Токен отсутствует!")
 
     print(f"API Request: {method} {endpoint}")
-    print(f"Data: {data}")
+    print(f"Headers: {headers}")
     print(f"Use form-data: {use_form}")
 
     try:
@@ -45,12 +47,11 @@ def api_request(method, endpoint, data=None, token=None, use_form=False):
             )
         else:
             # Для остальных - JSON
-            headers['Content-Type'] = 'application/json'
             response = requests.request(
                 method,
                 f'{API_URL}{endpoint}',
                 json=data,
-                headers=headers,
+                headers=headers,  # ✅ Теперь headers включает Authorization!
                 timeout=10
             )
 
@@ -69,9 +70,7 @@ def validate_email(email):
 @app.route('/')
 def index():
     if 'token' in session:
-        print(f"Index: Token in session - {session['token'][:20]}...")
         return redirect(url_for('dashboard'))
-    print("Index: No token in session")
     return redirect(url_for('login'))
 
 
@@ -136,19 +135,16 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        # ПРАВИЛЬНЫЙ ФОРМАТ для вашего FastAPI
         data = {
-            'username': request.form['email'],  # API ждет username
+            'username': request.form['email'],
             'password': request.form['password']
         }
 
         print("=" * 50)
-        print("ЛОГИН: отправка form-data через api_request")
-        print(f"URL: {API_URL}/auth/login")
+        print("ЛОГИН: отправка form-data")
         print(f"Data: {data}")
         print("=" * 50)
 
-        # ИСПОЛЬЗУЕМ api_request с use_form=True
         response = api_request('POST', '/auth/login', data=data, use_form=True)
 
         if response and response.status_code == 200:
@@ -171,20 +167,24 @@ def login():
 
 @app.route('/logout')
 def logout():
-    print(f"Logout: Clearing session {dict(session)}")
+    print(f"🚪 Выход из системы. Была сессия: {dict(session)}")
     session.clear()
-    flash('Вы вышли из системы', 'success')
-    return redirect(url_for('login'))
+
+    # Создаём ответ и удаляем куку сессии
+    resp = make_response(redirect(url_for('login')))
+    resp.set_cookie('session', '', expires=0)
+
+    flash('Вы успешно вышли из системы', 'success')
+    print("✅ Сессия очищена, кука удалена")
+    return resp
 
 
 @app.route('/dashboard')
 def dashboard():
     if 'token' not in session:
-        print("Dashboard: No token in session, redirecting to login")
         flash('Пожалуйста, войдите в систему', 'error')
         return redirect(url_for('login'))
 
-    print(f"Dashboard: Role is {session['role']}")
     if session['role'] == 'patient':
         return redirect(url_for('patient_dashboard'))
     elif session['role'] == 'doctor':
@@ -197,26 +197,36 @@ def dashboard():
 @app.route('/patient/dashboard')
 def patient_dashboard():
     if 'token' not in session or session['role'] != 'patient':
-        print("Patient dashboard: Access denied")
         flash('Доступ запрещен', 'error')
         return redirect(url_for('login'))
 
-    print(f"Patient dashboard: Fetching profile with token {session['token'][:20]}...")
+    print(f"🔑 Токен из сессии: {session['token'][:20]}...")
+
     response = api_request('GET', '/patient/profile', token=session['token'])
+
     if not response or response.status_code != 200:
-        print(f"Profile fetch failed: {response.status_code if response else 'No response'}")
+        print(f"❌ Ошибка получения профиля: {response.status_code if response else 'No response'}")
         session.clear()
         flash('Сессия истекла, пожалуйста, войдите снова', 'error')
         return redirect(url_for('login'))
 
     profile = response.json()
-    print(f"Profile fetched: {profile['surname']} {profile['name']}")
+    session['user_name'] = f"{profile['name']} {profile['surname']}"
 
     measurements_response = api_request('GET', '/patient/measurements', token=session['token'])
     measurements = measurements_response.json()[
         :10] if measurements_response and measurements_response.status_code == 200 else []
 
-    return render_template('patient_dashboard.html', profile=profile, measurements=measurements)
+    last_measurement = measurements[0] if measurements else None
+    current_date = datetime.now().strftime('%d.%m.%Y')
+
+    return render_template(
+        'patient_dashboard.html',
+        profile=profile,
+        measurements=measurements,
+        last_measurement=last_measurement,
+        current_date=current_date
+    )
 
 
 @app.route('/patient/measurements', methods=['GET', 'POST'])
@@ -248,10 +258,8 @@ def patient_measurements():
     if measurements:
         plt.figure(figsize=(10, 6))
 
-        dates = [datetime.fromisoformat(m['measured_at']).date() for m in measurements[:30]]
-        glucose = [m['glucose'] for m in measurements[:30] if m['glucose'] is not None]
-        glucose_dates = [datetime.fromisoformat(m['measured_at']).date() for m in measurements[:30] if
-                         m['glucose'] is not None]
+        glucose = [m['glucose'] for m in measurements[:30] if m.get('glucose')]
+        glucose_dates = [datetime.fromisoformat(m['measured_at']).date() for m in measurements[:30] if m.get('glucose')]
 
         if glucose:
             plt.plot(glucose_dates, glucose, marker='o', label='Глюкоза (ммоль/л)')
@@ -281,7 +289,6 @@ def patient_prescriptions():
 
     response = api_request('GET', '/patient/prescriptions', token=session['token'])
     prescriptions = response.json() if response and response.status_code == 200 else []
-
     return render_template('patient_prescriptions.html', prescriptions=prescriptions)
 
 
@@ -297,7 +304,6 @@ def patient_complaints():
             'severity': request.form['severity'],
             'description': request.form.get('description')
         }
-
         response = api_request('POST', '/patient/complaints', data=data, token=session['token'])
         if response and response.status_code == 201:
             flash('Жалоба добавлена успешно', 'success')
@@ -307,8 +313,37 @@ def patient_complaints():
 
     response = api_request('GET', '/patient/complaints', token=session['token'])
     complaints = response.json() if response and response.status_code == 200 else []
-
     return render_template('patient_complaints.html', complaints=complaints)
+
+
+@app.route('/patient/diary')
+def patient_diary():
+    return render_template('patient_diary.html')
+
+
+@app.route('/patient/statistics')
+def patient_statistics():
+    return render_template('patient_statistics.html')
+
+
+@app.route('/patient/visits')
+def patient_visits():
+    return render_template('patient_visits.html')
+
+
+@app.route('/patient/settings')
+def patient_settings():
+    return render_template('patient_settings.html')
+
+
+@app.route('/patient/help')
+def patient_help():
+    return render_template('patient_help.html')
+
+
+@app.route('/patient/notifications')
+def patient_notifications():
+    return render_template('patient_notifications.html')
 
 
 @app.route('/doctor/patients')
@@ -319,7 +354,6 @@ def doctor_patients():
 
     response = api_request('GET', '/doctor/patients', token=session['token'])
     patients = response.json() if response and response.status_code == 200 else []
-
     return render_template('doctor_patients.html', patients=patients)
 
 
@@ -338,26 +372,22 @@ def doctor_patient_card(patient_id):
     data = response.json()
 
     chart_url = None
-    if data['measurements']:
+    if data.get('measurements'):
         plt.figure(figsize=(12, 8))
-
         measurements = data['measurements'][:30]
-        dates = [datetime.fromisoformat(m['measured_at']).date() for m in measurements]
 
         plt.subplot(2, 2, 1)
-        glucose = [m['glucose'] for m in measurements if m['glucose'] is not None]
-        glucose_dates = [datetime.fromisoformat(m['measured_at']).date() for m in measurements if
-                         m['glucose'] is not None]
+        glucose = [m['glucose'] for m in measurements if m.get('glucose')]
+        glucose_dates = [datetime.fromisoformat(m['measured_at']).date() for m in measurements if m.get('glucose')]
         if glucose:
             plt.plot(glucose_dates, glucose, marker='o', color='blue')
             plt.title('Глюкоза')
             plt.grid(True)
 
         plt.subplot(2, 2, 2)
-        systolic = [m['systolic_bp'] for m in measurements if m['systolic_bp'] is not None]
-        diastolic = [m['diastolic_bp'] for m in measurements if m['diastolic_bp'] is not None]
-        bp_dates = [datetime.fromisoformat(m['measured_at']).date() for m in measurements if
-                    m['systolic_bp'] is not None]
+        systolic = [m['systolic_bp'] for m in measurements if m.get('systolic_bp')]
+        diastolic = [m['diastolic_bp'] for m in measurements if m.get('diastolic_bp')]
+        bp_dates = [datetime.fromisoformat(m['measured_at']).date() for m in measurements if m.get('systolic_bp')]
         if systolic and diastolic:
             plt.plot(bp_dates, systolic, marker='o', label='Систолическое')
             plt.plot(bp_dates, diastolic, marker='o', label='Диастолическое')
@@ -366,24 +396,22 @@ def doctor_patient_card(patient_id):
             plt.grid(True)
 
         plt.subplot(2, 2, 3)
-        pulse = [m['pulse'] for m in measurements if m['pulse'] is not None]
-        pulse_dates = [datetime.fromisoformat(m['measured_at']).date() for m in measurements if m['pulse'] is not None]
+        pulse = [m['pulse'] for m in measurements if m.get('pulse')]
+        pulse_dates = [datetime.fromisoformat(m['measured_at']).date() for m in measurements if m.get('pulse')]
         if pulse:
             plt.plot(pulse_dates, pulse, marker='o', color='green')
             plt.title('Пульс')
             plt.grid(True)
 
         plt.subplot(2, 2, 4)
-        weight = [m['weight'] for m in measurements if m['weight'] is not None]
-        weight_dates = [datetime.fromisoformat(m['measured_at']).date() for m in measurements if
-                        m['weight'] is not None]
+        weight = [m['weight'] for m in measurements if m.get('weight')]
+        weight_dates = [datetime.fromisoformat(m['measured_at']).date() for m in measurements if m.get('weight')]
         if weight:
             plt.plot(weight_dates, weight, marker='o', color='purple')
             plt.title('Вес')
             plt.grid(True)
 
         plt.tight_layout()
-
         buf = BytesIO()
         plt.savefig(buf, format='png')
         buf.seek(0)
